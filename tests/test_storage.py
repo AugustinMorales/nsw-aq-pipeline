@@ -76,3 +76,21 @@ def test_completeness_counts_gaps_inside_each_series():
         {"location_id": "nsw-15", "parameter": "co", "datetime_to": "2026-11-04T02:00:00Z"},
     ]
     assert completeness(rows) == (3, 5)
+
+
+def test_files_use_unix_line_endings(tmp_path, sites):
+    # Same bytes on Windows and Linux, so Git diffs show only real changes
+    storage.upsert_measurements(_measurements(sites, make_record()), tmp_path)
+    storage.append_run({"run_at": "a", "status": "success"}, tmp_path)
+    for path in [tmp_path / "measurements" / "2026-10-31.csv", tmp_path / "runs.csv"]:
+        assert b"\r" not in path.read_bytes()
+
+
+def test_reads_files_with_windows_line_endings(tmp_path, sites):
+    # Files written by the earlier version still merge correctly
+    rows = _measurements(sites, make_record())
+    storage.upsert_measurements(rows, tmp_path)
+    path = tmp_path / "measurements" / "2026-10-31.csv"
+    path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+    assert storage.upsert_measurements(rows, tmp_path) == {"new": 0, "updated": 0, "unchanged": 1}
+    assert b"\r" not in path.read_bytes()

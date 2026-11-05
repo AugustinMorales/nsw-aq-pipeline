@@ -1,0 +1,2 @@
+# Keep data files byte-identical on Windows and Linux (see nsw_pipeline/storage.py)
+*.csv text eol=lf

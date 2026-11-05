@@ -6,6 +6,10 @@ Measurements are stored one file per UTC day, keyed by
 overlapping window, the same hour arrives many times; merging by key means
 it is stored once. If NSW later revises a value, the stored row is replaced
 and counted as "updated".
+
+All files are written with Unix line endings ("\n") on every computer, so a
+run on Windows and a run on GitHub's Linux servers produce identical files
+and Git only records rows that actually changed.
 """
 import csv
 import os
@@ -42,7 +46,7 @@ def _write(path, fields, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     with tmp.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+        writer = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     os.replace(tmp, path)
@@ -110,7 +114,7 @@ def append_run(summary, data_dir):
             _write(path, RUN_FIELDS, _read(path))
     is_new = not path.exists()
     with path.open("a", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=RUN_FIELDS, extrasaction="ignore")
+        writer = csv.DictWriter(f, fieldnames=RUN_FIELDS, extrasaction="ignore", lineterminator="\n")
         if is_new:
             writer.writeheader()
         writer.writerow(_as_strings(summary, RUN_FIELDS))
