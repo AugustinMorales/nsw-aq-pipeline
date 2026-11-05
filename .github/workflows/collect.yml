@@ -1,0 +1,63 @@
+name: Collect NSW air quality data
+
+on:
+  schedule:
+    # Every 3 hours at 23 minutes past (UTC). Each run fetches the last 12 hours,
+    # so a delayed or failed run is filled in by the next one.
+    - cron: "23 */3 * * *"
+  workflow_dispatch: # allows running it by hand from the Actions tab
+
+permissions:
+  contents: write # needed to commit the collected data
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run pipeline
+        id: pipeline
+        continue-on-error: true # still commit the run log when a run fails
+        run: python -m nsw_pipeline.run
+
+      - name: Save raw API responses
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw-responses-${{ github.run_id }}
+          path: raw/runs/
+          if-no-files-found: ignore
+          retention-days: 90
+
+      - name: Commit collected data
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No data changes to commit"
+            exit 0
+          fi
+          git commit -m "Collect data $(date -u +%Y-%m-%dT%H:%MZ) (${{ steps.pipeline.outcome }})"
+          for attempt in 1 2 3; do
+            git pull --rebase && git push && exit 0
+            sleep 10
+          done
+          exit 1
+
+      - name: Mark run as failed
+        if: steps.pipeline.outcome == 'failure'
+        run: |
+          echo "::error::Pipeline run failed. See the 'Run pipeline' step output and data/runs.csv."
+          exit 1
