@@ -69,11 +69,46 @@ Small negative values are kept as reported: reference monitors produce them near
 
 Rejected records go to `data/rejected/YYYY-MM-DD.csv` with the reason.
 
+## Dashboard
+
+A small web dashboard ([`dashboard/`](dashboard/)) shows the collected data:
+
+- **Headline numbers:** the latest hourly average, how many stations are reporting, how many are above the WHO 24-hour guideline (PM2.5 and PM10), and data completeness
+- **Hourly trend:** the average across the stations in the chosen region
+- **24-hour average by station**, ranked, with the WHO guideline marked (15 µg/m³ for PM2.5, 45 µg/m³ for PM10)
+- **Station map**, colored by 24-hour average
+- **Table view and CSV download** of daily averages and hourly data
+- **Pipeline status:** last successful run and run history
+
+Filters: region (Greater Sydney by default, all stations, or any NSW region), pollutant (PM2.5 by default), and period (24 hours, 7 days, 30 days). Times are shown in Sydney local time. Gases are shown in ppb (parts per billion) because the values are easier to read than in ppm. A station's daily or 24-hour average only counts if at least 18 of the 24 hours have data.
+
+The dashboard reads the CSV files in `data/`. Locally it reads your copy of the folder; deployed, it reads them directly from GitHub (`DATA_BASE_URL`), so it shows new data within about 15 minutes of each pipeline run without being redeployed.
+
+### Run it locally
+
+```
+pip install -r dashboard/requirements.txt
+streamlit run dashboard/app.py
+```
+
+It opens at http://localhost:8501. Run `git pull` first to get the latest data.
+
+### Deploy to Render
+
+The repository includes a [Render Blueprint](render.yaml):
+
+1. Sign in at [render.com](https://render.com) with your GitHub account.
+2. Choose **New > Blueprint**, select this repository, and confirm.
+3. Render builds the dashboard and gives it a public `onrender.com` address.
+
+On Render's free plan the dashboard goes to sleep after 15 minutes without visitors and takes about a minute to wake on the next visit. Render only redeploys when the dashboard code changes, not on each data commit.
+
 ## Requirements
 
 - Python 3.11 or newer
 - No packages needed to run the pipeline (standard library only)
-- `pytest` for the tests
+- `streamlit`, `plotly`, `pandas` for the dashboard (`dashboard/requirements.txt`)
+- `pytest` and `pandas` for the tests (`requirements-dev.txt`)
 - No API key
 
 ## Usage
@@ -110,10 +145,12 @@ The tests use real API responses saved in `tests/fixtures/`, so they need no net
 | `nsw_pipeline/storage.py` | CSV storage with duplicate protection, and the run log |
 | `nsw_pipeline/run.py` | One complete pipeline run |
 | `nsw_pipeline/report.py` | Monitoring report |
+| `dashboard/app.py`, `dashboard/data.py` | Web dashboard and its calculations |
+| `render.yaml`, `.streamlit/config.toml` | Dashboard deployment and settings |
 | `tests/` | Tests, with saved API responses in `tests/fixtures/` |
 | `.github/workflows/collect.yml` | Scheduled collection every 3 hours |
 | `.github/workflows/tests.yml` | Runs the tests on every push |
-| `data/` | Collected measurements, rejected records, and the run log |
+| `data/` | Collected measurements, station list (`locations.csv`), rejected records, and the run log |
 | `MONITORING.md` | Log of the month-long monitoring period |
 | `SOURCE_NOTES.md` | Source documentation and field mapping |
 | `fetch_sample.py`, `check_timezone.py`, `raw/` | Early research scripts and their saved samples |

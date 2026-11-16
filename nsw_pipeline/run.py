@@ -59,9 +59,11 @@ def run(now=None, data_dir=DATA_DIR, raw_dir=RAW_DIR, lookback_hours=LOOKBACK_HO
     try:
         sites, sites_text = fetch_sites()
         save_raw(raw_dir, stamp, "sites", sites_text)
-        site_ids = normalize.collectable_site_ids(normalize.build_locations(sites))
+        locations = normalize.build_locations(sites)
+        site_ids = normalize.collectable_site_ids(locations)
         if not site_ids:
             raise RuntimeError("get_SiteDetails returned no usable sites")
+        storage.write_locations(normalize.location_rows(locations), data_dir)
 
         # Find which sites measure which pollutant, to skip empty requests.
         # If this quick lookup fails, fall back to asking every site.

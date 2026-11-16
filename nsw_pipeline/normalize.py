@@ -96,8 +96,27 @@ def build_locations(sites):
             "name": (site.get("SiteName") or "").strip(),
             "latitude": site.get("Latitude"),
             "longitude": site.get("Longitude"),
+            "region": (site.get("Region") or "").strip(),
         }
     return locations
+
+
+LOCATION_FIELDS = ["location_id", "location_name", "region", "latitude", "longitude", "source_site_id"]
+
+
+def location_rows(locations):
+    """One row per collectable station, for data/locations.csv."""
+    return [
+        {
+            "location_id": f"nsw-{site_id}",
+            "location_name": locations[site_id]["name"],
+            "region": locations[site_id]["region"],
+            "latitude": locations[site_id]["latitude"],
+            "longitude": locations[site_id]["longitude"],
+            "source_site_id": site_id,
+        }
+        for site_id in collectable_site_ids(locations)
+    ]
 
 
 def collectable_site_ids(locations):

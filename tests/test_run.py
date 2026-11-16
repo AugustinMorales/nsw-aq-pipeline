@@ -199,3 +199,16 @@ def test_invalid_values_still_go_to_rejected_log(tmp_path):
     assert summary["rejected"] == 1
     rows = list((tmp_path / "data" / "rejected").glob("*.csv"))
     assert len(rows) == 1 and "out_of_range" in rows[0].read_text(encoding="utf-8")
+
+
+def test_station_list_is_written(tmp_path):
+    fetch_sites, fetch_obs, _ = fake_sources()
+    run(now=SAMPLE_FETCHED_AT, data_dir=tmp_path / "data", raw_dir=tmp_path / "raw",
+        fetch_sites=fetch_sites, fetch_observations=fetch_obs)
+    import csv
+    with (tmp_path / "data" / "locations.csv").open(newline="", encoding="utf-8") as f:
+        rows = {r["location_id"]: r for r in csv.DictReader(f)}
+    assert len(rows) == 121
+    assert rows["nsw-39"]["region"] == "Sydney East"
+    assert rows["nsw-1107"]["region"] == "Research Monitoring"  # trailing space trimmed
+    assert "nsw-805" not in rows

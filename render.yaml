@@ -1,0 +1,21 @@
+# Render Blueprint for the dashboard. In Render: New > Blueprint > pick this repository.
+services:
+  - type: web
+    name: nsw-aq-dashboard
+    runtime: python
+    plan: free
+    buildCommand: pip install -r dashboard/requirements.txt
+    startCommand: streamlit run dashboard/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true
+    # Redeploy only when dashboard code changes, not on every data commit from
+    # the pipeline (the dashboard reads the data from GitHub as it arrives).
+    buildFilter:
+      paths:
+        - dashboard/**
+        - nsw_pipeline/**
+        - .streamlit/**
+        - render.yaml
+    envVars:
+      - key: DATA_BASE_URL
+        value: https://raw.githubusercontent.com/AugustinMorales/nsw-aq-pipeline/main/data
+      - key: PYTHON_VERSION
+        value: 3.14.10

@@ -1,1 +1,4 @@
 pytest
+# For the dashboard tests
+pandas==3.1.1
+tzdata

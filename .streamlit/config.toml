@@ -1,0 +1,12 @@
+# Streamlit settings for the dashboard (used locally and on Render)
+
+[client]
+# Hide developer menu items such as "Deploy" from visitors
+toolbarMode = "viewer"
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+# Selected buttons and links use the chart blue instead of Streamlit's default red
+primaryColor = "#2a78d6"

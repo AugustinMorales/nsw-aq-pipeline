@@ -16,7 +16,7 @@ import os
 from collections import defaultdict
 from pathlib import Path
 
-from .normalize import MEASUREMENT_FIELDS, REJECT_FIELDS
+from .normalize import LOCATION_FIELDS, MEASUREMENT_FIELDS, REJECT_FIELDS
 
 RUN_FIELDS = [
     "run_at", "status", "window_start", "window_end_exclusive",
@@ -99,6 +99,13 @@ def upsert_rejected(rejects, data_dir):
         by_day[str(r.get("date") or "unknown-date")[:10]].append(r)
     for day, rows in by_day.items():
         _merge(Path(data_dir) / "rejected" / f"{day}.csv", REJECT_FIELDS, rows, reject_key)
+
+
+def write_locations(rows, data_dir):
+    """Write the station list (name, region, coordinates). Unchanged lists
+    produce an identical file, so Git records nothing."""
+    _write(Path(data_dir) / "locations.csv", LOCATION_FIELDS,
+           sorted((_as_strings(r, LOCATION_FIELDS) for r in rows), key=lambda r: r["location_id"]))
 
 
 def append_run(summary, data_dir):
