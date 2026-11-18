@@ -41,3 +41,4 @@ run_at,status,window_start,window_end_exclusive,sites_requested,records_fetched,
 2026-11-16T19:41:29Z,partial,2026-11-16,2026-11-18,58,11328,4667,0,2177,4484,1,1795,0,2872,1212.3,"1 request(s) failed; first: PM10, sites 15-640 (30): get_Observations failed after 3 attempts: HTTP 502: The specified CGI application encountered an error and the server terminated the process."
 2026-11-17T03:58:42Z,success,2026-11-17,2026-11-18,58,6384,2636,0,822,2926,0,1730,0,906,1062.8,
 2026-11-17T16:12:02Z,success,2026-11-17,2026-11-19,58,12768,5720,0,1196,5852,0,3084,0,2636,776.6,
+2026-11-18T01:00:18Z,success,2026-11-17,2026-11-19,58,12768,7836,0,1474,3458,0,2116,0,5720,1077.5,
